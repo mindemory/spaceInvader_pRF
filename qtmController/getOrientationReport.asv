@@ -1,0 +1,210 @@
+clear; close all; clc;
+
+[signalBeeper, beeperFs]       = createBeeper;
+
+%% Establish connection via Little Endian Port
+tcp                            = tcpip('100.1.1.66',22223);
+set(tcp, 'InputBufferSize', 30000);
+fopen(tcp);
+
+% Make sure the connection is stable
+fwrite(tcp,qtm_build_packet('GetParameters'));
+packsize                           = typecast(uint8(fread(tcp,4)),'int32');
+data                           = qtm_unpack_packet(fread(tcp,double(packsize-4)));
+disp(data.string')
+
+%% Stream frames
+pause(2)
+numMarkersUsed                 = 4;
+nsamps                         = 50;
+sampInterval                   = 0.02; % in seconds
+markerHolder                   = NaN(nsamps, numMarkersUsed, 4);
+for isamp    = 1:nsamps
+    fwrite(tcp,qtm_build_packet('GetCurrentFrame 3DNoLabels'));
+    packsize                           = typecast(uint8(fread(tcp,4)),'int32');
+    data                           = qtm_unpack_packet(fread(tcp,double(packsize-4)));
+    lastmarkerpos                  = zeros(numMarkersUsed, 4);
+    switch data.type
+
+        % Post event setting QTM Server Response
+        case 1
+            clear data
+            markerpos = lastmarkerpos;
+
+        % Normal case of polling for marker position
+        case 3
+            if ~data.nodata && ~data.error && isfield(data.cmpnt(1),'marker')
+                markerpos = zeros(length(data.cmpnt(1).marker), 4); 
+                for markerIdx = 1:length(data.cmpnt(1).marker)
+                    markerpos(markerIdx,1) = data.cmpnt(1).marker(markerIdx).x;   % x coordinate
+                    markerpos(markerIdx,2) = data.cmpnt(1).marker(markerIdx).y;   % y coordinate
+                    markerpos(markerIdx,3) = data.cmpnt(1).marker(markerIdx).z;   % z coordinate
+                    markerpos(markerIdx,4) = data.cmpnt(1).marker(markerIdx).id;  % id
+                end
+
+            else
+                markerpos = lastmarkerpos;
+            end
+    end
+    disp(markerpos)
+    markerHolder(isamp, :, :) = markerpos;
+
+    pause(sampInterval)
+end
+
+sound(signalBeeper, beeperFs)
+%%
+fclose(tcp)
+
+
+
+
+%% Visualize the trajectory
+figure;
+hold on;
+i = 120;
+
+% first_points = squeeze(markerHolder(1, :, 1:3));
+% ith_points = squeeze(markerHolder(i, :, 1:3));
+% 
+% centroid_first = mean(first_points, 1);
+% centroid_ith   = mean(ith_points, 1);
+% 
+% first_centered = first_points - centroid_first;
+% ith_centered   = ith_points - centroid_ith;
+
+for m = 1:numMarkersUsed
+    scatter3(markerHolder(:, m, 1), markerHolder(:, m, 2), markerHolder(:, m, 3), 'black', 'filled');
+    scatter3(markerHolder(:, 7, 1), markerHolder(:, 7, 2), markerHolder(:, 7, 3), 'blue', 'filled');
+%     scatter3(markerHolder(i, m, 1), markerHolder(i, m, 2), markerHolder(i, m, 3));
+%     scatter3(first_centered(m, 1), first_centered(m, 2), first_centered(m, 3), 'blue', 'filled')
+%     scatter3(ith_centered(m, 1), ith_centered(m, 2), ith_centered(m, 3), 'red', 'filled')
+   
+end
+
+
+% xlim([1000 2000])
+% ylim([0 200])
+% pause(2)
+% for i = 1:10:1000
+%     for m = 1:numMarkersUsed
+%         scatter3(markerHolder(i, m, 1), markerHolder(i, m, 2), markerHolder(i, m, 3));
+%     end
+%     if i == 1
+%         pause(2)
+%     end
+%     pause(0.1)
+% end
+xlabel('X Position');
+ylabel('Y Position');
+zlabel('Z Position');
+title('Marker Trajectories');
+legend(arrayfun(@(k) sprintf('Marker %d', k-1), 1:numMarkersUsed, 'UniformOutput', false));
+grid on;
+hold off;
+
+%%
+% MATLAB indices for markers 1, 2, 7
+ref_idx = [1, 2, 7]; % 1-based indexing
+ref_points = squeeze(mean(markerHolder(:, ref_idx, 1:3), 1, 'omitnan')); % 3x3 matrix
+
+% Vectors in the plane
+v1 = ref_points(2,:) - ref_points(1,:);
+v2 = ref_points(3,:) - ref_points(1,:);
+% Normal vector
+normal_vec = cross(v1, v2);
+normal_vec = normal_vec / norm(normal_vec); % Normalize
+
+project_point = @(point, plane_point, plane_normal) ...
+    point - dot(point - plane_point, plane_normal) * plane_normal;
+
+all_points = squeeze(markerHolder(:, :, 1:3)); % numMarkersUsed x 3
+projected_points = zeros(size(all_points));
+for k = 1:size(all_points,1)
+    for m = 1:numMarkersUsed
+        projected_points(k,m,:) = project_point(squeeze(all_points(k,m,:)), squeeze(ref_points(1,:)'), squeeze(normal_vec'));
+    end
+end
+
+angles_deg = zeros(nsamps, 1);
+
+for t = 1:nsamps
+    % Extract points for each group at time t
+    pts_345 = squeeze(projected_points(t, [3 4 5], :)); % 3x3
+    pts_67  = squeeze(projected_points(t, [6 7], :));   % 2x3
+
+    % Fit line to markers 3,4,5 using PCA
+    centroid_345 = mean(pts_345, 1);
+    [~, ~, V_345] = svd(pts_345 - centroid_345, 'econ');
+    dir_345 = V_345(:,1); % First principal component
+
+    % Line for markers 6,7 is the vector between them
+    dir_67 = pts_67(2,:) - pts_67(1,:);
+    dir_67 = dir_67(:); % Ensure column vector
+
+    % Normalize direction vectors
+    dir_345 = dir_345 / norm(dir_345);
+    dir_67 = dir_67 / norm(dir_67);
+
+    % Compute angle between the two direction vectors
+    cos_theta = dot(dir_345, dir_67);
+    cos_theta = max(-1, min(1, cos_theta)); % Clamp for numerical safety
+    angles_deg(t) = acosd(cos_theta);
+end
+
+
+% % Construct rotation matrix to align normal_vec with [0 0 1]
+% z_axis = [0 0 1]';
+% v = cross(normal_vec', z_axis);
+% s = norm(v);
+% c = dot(normal_vec', z_axis);
+% if s ~= 0
+%     vx = [  0   -v(3)  v(2);
+%            v(3)   0   -v(1);
+%           -v(2) v(1)    0 ];
+%     R = eye(3) + vx + vx^2 * ((1-c)/(s^2));
+% else
+%     R = eye(3); % normal_vec already aligned with z
+% end
+% 
+% % Apply rotation to all projected points
+% flattened_points = zeros(size(projected_points));
+% for k = 1:size(projected_points,1)
+%     for m = 1:size(projected_points,2)
+%         flattened_points(k,m,:) = R * squeeze(projected_points(k,m,:));
+%     end
+% end
+
+% Now, flattened_points(:,:,3) should be close to zero
+
+
+
+% function proj_point = project_point_to_plane(point, plane_point, plane_normal)
+%     vec = point - plane_point;
+%     dist = dot(vec, plane_normal);
+%     proj_point = point - dist * plane_normal;
+% end
+
+figure;
+hold on;
+
+for m = 1:numMarkersUsed
+    scatter3(projected_points(:, m, 1), projected_points(:, m, 2), projected_points(:, m, 3), 'black', 'filled');
+    scatter3(markerHolder(:, m, 1), markerHolder(:, m, 2), markerHolder(:, m, 3), 'blue', 'filled');   
+    scatter3(flattened_points(:, m, 1), flattened_points(:, m, 2), flattened_points(:, m, 3), 'red', 'filled');   
+end
+
+%%
+% For each projected point, check the distance to the plane
+distances = zeros(size(projected_points,1), size(projected_points,2));
+for k = 1:size(projected_points,1)
+    for m = 1:size(projected_points,2)
+        pt = squeeze(projected_points(k,m,:));
+        distances(k,m) = dot(pt - ref_points(1,:)', normal_vec');
+    end
+end
+
+% The values in 'distances' should be close to zero everywhere
+max_abs_distance = max(abs(distances(:)));
+disp(['Max absolute distance from plane: ', num2str(max_abs_distance)]);
+
