@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# MATLAB autosaves / backups / build artifacts
+*.asv
+*.m~
+slprj/
+*.mexmaci64
+*.mexmaca64
+
+# Experiment output
+data/

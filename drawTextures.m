@@ -6,6 +6,7 @@ function drawTextures(parameters, screen, texture_name, color, pos, alienTexture
 
 switch texture_name
     % Drawing Aperture
+    % TODO(cleanup): never drawn (invaderTask aperture flag is unused)
     case 'Aperture'
         % Get pixel width and height for inner and outer circle based of VA
         r_pix_aperture = va2pixel(parameters, screen, parameters.apertureSize);
@@ -52,9 +53,9 @@ switch texture_name
                 fixcolor, [screen.xCenter screen.yCenter], 2); % 2 is for smoothing
         end
         Screen('FillOval', screen.win, parameters.fixationColor, centeredRect_inner, maxDiameter_inner);
-        Screen('Flip', screen.win);
     
     % Drawing Fixation Cross
+    % TODO(cleanup): unused; also flips internally unlike FixationCross
     case 'FixationCrossITI'
         if nargin < 4
             fixcolor = screen.white;
@@ -93,6 +94,7 @@ switch texture_name
         Screen('Flip', screen.win);
         
     % Drawing Stimulus
+    % TODO(cleanup): unused and broken (dotSize/dotCenter are undefined)
     case 'Stimulus'
         baseRect = [0 0 dotSize*2 dotSize*2];
         maxDiameter = ceil(max(baseRect) * 1.1);
@@ -129,6 +131,7 @@ switch texture_name
         Screen('FrameOval', screen.win, parameters.crosshairColor, centeredRect_inner, 2);
         Screen('DrawLines', screen.win, allCoords, 3, parameters.crosshairColor, pos);
     case 'CrossHairGunShot'
+        % TODO(cleanup): duplicates CrossHair except for the red inner ring/arms
         % Get pixel width and height for inner and outer circle based of VA
         r_pix_crossHairDiameter = parameters.alienSize * parameters.crossHairRatio;
         r_pix_outerCircle = r_pix_crossHairDiameter;

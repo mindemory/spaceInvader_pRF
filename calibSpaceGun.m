@@ -1,4 +1,3 @@
-% function [calibratePoints, pointerCoords]     = calibSpaceGun(parameters, screen, badAlien, audioData, sampleRates, calibrateType)
 function [calibratePoints, pointerCoords]     = calibSpaceGun(parameters, screen, badAlien, calibrateType)
 
 if nargin                                     < 4
@@ -7,6 +6,7 @@ end
 
 calibrateScreenRatio                          = 0.2;
 
+% TODO(cleanup): point grid is duplicated in calibSpaceGun/validateSpaceGun; HV12 branch is unused (invaderTask uses HV9)
 if strcmp(calibrateType, 'HV12')
     calibratePoints                           = [screen.screenXpixels/2,                          screen.screenYpixels*calibrateScreenRatio;
                                                  screen.screenXpixels/2,                          screen.screenYpixels*(1-calibrateScreenRatio);
@@ -32,6 +32,7 @@ elseif strcmp(calibrateType, 'HV9')
                                                  screen.screenXpixels/2,                          screen.screenYpixels/2];
 end
 
+% TODO(cleanup): old alternate point grid, kept for reference
 % if strcmp(calibrateType, 'HV12')
 %     calibratePoints                           = [screen.screenXpixels/2,                          screen.screenYpixels*calibrateScreenRatio;
 %                                                  screen.screenXpixels/2,                          screen.screenYpixels*(1-calibrateScreenRatio);
@@ -73,9 +74,6 @@ pointerCoords                                 = NaN(size(calibratePoints));
 lockPosition                                  = false;
 
 
-% Play the sound and block execution until it finishes
-% player = audioplayer(audioData{calibLocIdx(calibrateCounter)}, sampleRates(calibLocIdx(calibrateCounter)));
-% playblocking(player);
 while true  % Loop until calibration is completed or Esc is pressed
     [~, ~, keyCode]                           = KbCheck; % Check keyboard
     if keyCode(KbName('ESCAPE'))
@@ -98,6 +96,7 @@ while true  % Loop until calibration is completed or Esc is pressed
     if keyCode(KbName('space'))
         % Check whether to use mocap
         if parameters.mocap
+%             TODO(cleanup): older averaging / stability-check approaches below
 %             gunPos                           = NaN(10, 2);
 %             for i = 1:10
 %                 gunPos(i, :)                       = qtm_getGunPos(parameters.mocapHandle);
@@ -148,6 +147,7 @@ while true  % Loop until calibration is completed or Esc is pressed
     end
 
     % Draw particle burst animation if exploding
+    % TODO(cleanup): explosion animation is duplicated in calibSpaceGun/validateSpaceGun
     if exploding
         for p                                = 1:parameters.explodenParticles
             r                                = explodeSpeeds(p) * explosionFrame;
@@ -173,10 +173,6 @@ while true  % Loop until calibration is completed or Esc is pressed
             % Randomize angles and speeds for next burst
             explodeAngles                    = parameters.explodeAngles(randperm(numel(parameters.explodeAngles)));
             explodeSpeeds                    = parameters.explodeSpeeds(randperm(numel(parameters.explodeSpeeds)));
-%             if calibrateCounter              <= size(calibratePointsShuff, 1)
-%                 player = audioplayer(audioData{calibLocIdx(calibrateCounter)}, sampleRates(calibLocIdx(calibrateCounter)));
-%                 playblocking(player);
-%             end
             
         end
     end

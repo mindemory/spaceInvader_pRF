@@ -24,6 +24,7 @@ function [avgGazeCenter,avgPupilSize] = etFixCalibTask(parameters, screen, kbx, 
     %fixation dot white during the 5 second task. use the fixation image as
     %used in the regular trials
     drawTextures(parameters, screen, 'FixationCross');
+    Screen('Flip', screen.win);
     
     fixationStartT = GetSecs;
     forAvgGazeCenter = zeros(9,2);

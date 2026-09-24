@@ -29,6 +29,8 @@ switch prompt_name
         text = sprintf('Thank you. When ready, press key to continue.');
     case 'TrialPause'
         text = 'Experiment is paused! Press SPACE to resume.';
+    case 'BlockExists'
+        text = sprintf('Data for block %02d already exists.\nPress SPACE to overwrite or ESC to quit.', num);
     case 'EndExperiment'
         text = 'Aye aye, spaceman! Until next time ...';
 end

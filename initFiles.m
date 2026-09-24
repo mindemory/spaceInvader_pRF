@@ -17,8 +17,7 @@ if exist(block_dir, 'dir')==7 % if the "block_dir" directory doesn't exist, crea
         [~, keyCode] = KbQueueCheck(kbx);
         cmndKey = KbName(keyCode);
         if strcmp(cmndKey, parameters.exit_key)
-            sca;
-            break;
+            error('invaderTask:userAbort', 'Block %02d already exists, run aborted.', block);
         end
     end
 else
@@ -26,6 +25,7 @@ else
 end
 
 % File names that will be saved.
+parameters.block = num2str(block, '%02d');
 date_time = datestr(now, 'mmddyy_HHMM');
 edfFile = [parameters.subject parameters.block date_time(1:4)];
 matFile = ['matFile_subj' parameters.subject '_block' parameters.block '.mat'];
@@ -34,7 +34,7 @@ EEGreportFile = ['EEGreportFile_subj' parameters.subject '_block' parameters.blo
 parameters.block_dir = block_dir;
 parameters.edfFile = edfFile;
 parameters.matFile = matFile;
-if parameters.EEG
+if isfield(parameters, 'EEG') && parameters.EEG
     parameters.EEGreportFile = EEGreportFile;
 end
 end

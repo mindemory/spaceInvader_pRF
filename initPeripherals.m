@@ -9,9 +9,11 @@ KbName('UnifyKeyNames');
 if strcmp(thisdev, 'mac')
     % get keyboard and mouse pointers for the current setup
     devices = PsychHID('Devices');
+    % TODO(cleanup): find() returns several indices (and this assignment errors) if more than one keyboard/mouse is attached
     devIdx(1) = find([devices(:).usageValue] == 6);
     devIdx(2) = find([devices(:).usageValue] == 2);
     
+    % TODO(cleanup): left_key/right_key/trial_key/newloc_key/quit_key are unused by this task
     parameters.left_key = 1;
     parameters.right_key = 2;
     parameters.trial_key = '1!';
@@ -64,6 +66,7 @@ else
 end
 
 % create keyboard and mouse events queue
+% TODO(cleanup): the task polls with KbCheck/GetMouse; only initFiles uses the kbx queue, mbx is unused
 KbQueueCreate(kbx);
 KbQueueCreate(mbx);
 

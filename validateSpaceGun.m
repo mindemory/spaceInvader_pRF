@@ -6,6 +6,7 @@ end
 
 calibrateScreenRatio                          = 0.2;
 
+% TODO(cleanup): point grid is duplicated in calibSpaceGun/validateSpaceGun; HV12 branch is unused (invaderTask uses HV9)
 if strcmp(calibrateType, 'HV12')
     validatePoints                           = [screen.screenXpixels/2,                          screen.screenYpixels*calibrateScreenRatio;
                                                  screen.screenXpixels/2,                          screen.screenYpixels*(1-calibrateScreenRatio);
@@ -42,9 +43,6 @@ validateCoords                                = NaN(size(validatePoints));
 lockPosition                                  = false;
 
 
-% Play the sound and block execution until it finishes
-% player = audioplayer(audioData{calibLocIdx(calibrateCounter)}, sampleRates(calibLocIdx(calibrateCounter)));
-% playblocking(player);
 while true  % Loop until calibration is completed or Esc is pressed
     [~, ~, keyCode]                           = KbCheck; % Check keyboard
     if keyCode(KbName('ESCAPE'))
@@ -97,6 +95,7 @@ while true  % Loop until calibration is completed or Esc is pressed
     end
 
     % Draw particle burst animation if exploding
+    % TODO(cleanup): explosion animation is duplicated in calibSpaceGun/validateSpaceGun
     if exploding
         for p                                = 1:parameters.explodenParticles
             r                                = explodeSpeeds(p) * explosionFrame;
@@ -122,10 +121,6 @@ while true  % Loop until calibration is completed or Esc is pressed
             % Randomize angles and speeds for next burst
             explodeAngles                    = parameters.explodeAngles(randperm(numel(parameters.explodeAngles)));
             explodeSpeeds                    = parameters.explodeSpeeds(randperm(numel(parameters.explodeSpeeds)));
-%             if calibrateCounter              <= size(calibratePointsShuff, 1)
-%                 player = audioplayer(audioData{calibLocIdx(calibrateCounter)}, sampleRates(calibLocIdx(calibrateCounter)));
-%                 playblocking(player);
-%             end
             
         end
     end

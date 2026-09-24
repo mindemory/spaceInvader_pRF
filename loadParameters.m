@@ -2,8 +2,8 @@ function parameters                     = loadParameters(subjID)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % program basic settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-parameters.eyeTrackerOn                 = 0;
-parameters.transparency                 = 0.85; % transparency for debug mode
+parameters.eyeTrackerOn                 = 0; % TODO(cleanup): unused, eyetracker flag is parameters.eyetracker
+parameters.transparency                 = 0.5; % transparency for debug mode
 parameters.viewingDistance              = 55; % viewDist (in cm)
 parameters.apertureSize                 = 28; % in degrees of visual angle
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -22,18 +22,18 @@ parameters.aliensPerBar                 = 6;
 parameters.alienAreaPerStim             = 0.99; % Percentage of area to use to display alien
 parameters.ntrials                      = 8; %8; % Total number of sweeps to run
 parameters.targRate                     = 2; % The target will have a 1/X chance of being presented in each set
-parameters.targCooldown                 = 1; % The target is only allowed to be presented once every X seconds; must be >= response_period
-parameters.responsePeriod               = 0.9; % Maximum response time allowed in seconds; must be <= targ_cooldown
-parameters.responseDelay                = 0.2; % Time period starting from the onset of stimuli in which subject cannot respond. This is used to keep a suitable window open for response feedback
+parameters.targCooldown                 = 1; % The target is only allowed to be presented once every X seconds; must be >= response_period % TODO(cleanup): unused, no target cooldown is enforced
+parameters.responsePeriod               = 0.9; % Maximum response time allowed in seconds; must be <= targ_cooldown % TODO(cleanup): unused
+parameters.responseDelay                = 0.2; % Time period starting from the onset of stimuli in which subject cannot respond. This is used to keep a suitable window open for response feedback % TODO(cleanup): unused
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Stimulus parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 parameters.fixationColor               = [255 255 255]; % black
-parameters.hitCorrectColor             = [0 255 0]; % green
-parameters.fixationBreakColor          = [255 191 0]; % amber
+parameters.hitCorrectColor             = [0 255 0]; % green % TODO(cleanup): unused
+parameters.fixationBreakColor          = [255 191 0]; % amber % TODO(cleanup): unused (no fixation monitoring yet)
 parameters.crosshairColor              = [255 191 0];
 parameters.fixationSizeDeg             = 0.6; % degrees of visual angle
-parameters.fixbreakthresh              = 1.2; % degrees of visual angle
+parameters.fixbreakthresh              = 1.2; % degrees of visual angle % TODO(cleanup): unused (no fixation monitoring yet)
 % % Adding parameters for stimulus (TO DO: change to dva)
 % % parameters.alienSize                   = 100; % in pixels
 % parameters.alienSize                   = 2.5; % in dva
@@ -48,6 +48,10 @@ parameters.explodenFrames              = 20;
 parameters.explodeAngles               = rand(1, parameters.explodenParticles) * 2 * pi;
 parameters.explodeSpeeds               = rand(1, parameters.explodenParticles) * 5 + 5;
 parameters.respawnDelayFrames          = 20; % Number of frames after explosion to wait for
+parameters.hitRadiusRatio              = 0.5; % Shot counts as a hit within this fraction of alien size from the bad alien's center
+parameters.gunShotWaitTime             = 0.2; % in seconds; refractory period between accepted gun shots
+parameters.validationThreshDva         = 3; % Max per-point validation error (dva) shown as green
+% TODO(cleanup): commented timing block below is from an older task
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % timing parameters (in seconds)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
